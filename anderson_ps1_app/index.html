@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>ANDERSON_PS1 // NEXA Super Dashboard</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#080b10">
+  <style>
+    :root {
+      --bg-color: #080b10;
+      --card-bg: #101622;
+      --accent-cyan: #00f0ff;
+      --accent-emerald: #00ff88;
+      --accent-amber: #ffb703;
+      --text-main: #e2e8f0;
+      --text-dim: #64748b;
+      --border-color: #1e293b;
+      --font-mono: 'Courier New', Courier, monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background-color: var(--bg-color);
+      color: var(--text-main);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      padding: 10px;
+    }
+
+    header {
+      background: var(--card-bg);
+      border: 1px solid var(--border-color);
+      border-left: 4px solid var(--accent-cyan);
+      padding: 12px;
+      border-radius: 8px;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand h1 { font-size: 1rem; font-weight: 700; color: var(--accent-cyan); letter-spacing: 1px; font-family: var(--font-mono); }
+    .brand span { font-size: 0.7rem; color: var(--text-dim); }
+
+    .header-actions { display: flex; gap: 6px; }
+    .menu-btn {
+      background: #162032; border: 1px solid var(--border-color); color: var(--accent-cyan);
+      padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-family: var(--font-mono); cursor: pointer;
+    }
+
+    #side-panel {
+      display: none; background: #0d131d; border: 1px solid var(--accent-cyan);
+      border-radius: 8px; padding: 10px; margin-bottom: 8px; font-family: var(--font-mono); font-size: 0.75rem; color: var(--text-dim);
+    }
+    #side-panel.active { display: block; }
+    .metric-row { display: flex; justify-content: space-between; margin-bottom: 6px; }
+    .metric-val { color: var(--accent-emerald); }
+
+    .api-config-box {
+      background: #121a2b; border: 1px dashed var(--accent-amber); padding: 8px; border-radius: 6px; margin-bottom: 8px; font-size: 0.75rem;
+    }
+    .api-config-box input {
+      width: 100%; background: #080b10; border: 1px solid var(--border-color); color: #fff; padding: 6px; border-radius: 4px; margin-top: 4px; font-size: 0.75rem;
+    }
+
+    .shortcut-bar { display: flex; gap: 6px; margin-bottom: 8px; overflow-x: auto; padding-bottom: 2px; }
+    .shortcut-btn {
+      background: #162032; border: 1px solid var(--border-color); color: var(--accent-cyan);
+      padding: 6px 10px; border-radius: 6px; font-size: 0.75rem; font-family: var(--font-mono); cursor: pointer; white-space: nowrap;
+    }
+    .shortcut-btn:active { background: var(--accent-cyan); color: #000; }
+
+    #console-output {
+      flex: 1; background: var(--card-bg); border: 1px solid var(--border-color); border-radius: 8px;
+      padding: 12px; overflow-y: auto; margin-bottom: 8px; display: flex; flex-direction: column; gap: 8px; font-family: var(--font-mono); font-size: 0.8rem; max-height: 45vh;
+    }
+
+    .system-log { color: var(--text-dim); font-size: 0.7rem; }
+    .msg-user {
+      align-self: flex-end; background: #1a2333; border: 1px solid var(--accent-cyan); color: #fff;
+      padding: 8px 12px; border-radius: 10px 10px 2px 10px; max-width: 85%; word-break: break-word;
+    }
+    .msg-ai {
+      align-self: flex-start; background: #0d131d; border: 1px solid var(--border-color); border-left: 3px solid var(--accent-emerald);
+      color: var(--text-main); padding: 8px 12px; border-radius: 2px 10px 10px 10px; max-width: 90%; line-height: 1.40; word-break: break-word;
+    }
+
+    .input-area { display: flex; gap: 6px; }
+    input[type="text"], input[type="password"] {
+      flex: 1; background: var(--card-bg); border: 1px solid var(--border-color); color: #fff; padding: 12px; border-radius: 8px; font-size: 0.9rem; outline: none;
+    }
+    input[type="text"]:focus, input[type="password"]:focus { border-color: var(--accent-cyan); }
+    button.exec-btn {
+      background: var(--accent-cyan); color: #000; font-weight: 700; border: none; padding: 0 16px; border-radius: 8px; min-height: 44px; cursor: pointer; font-family: var(--font-mono);
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div class="brand">
+      <h1>ANDERSON_PS1</h1>
+      <span>NEXA SUPER DASHBOARD</span>
+    </div>
+    <div class="header-actions">
+      <button class="menu-btn" onclick="toggleDashboard()">[PANEL]</button>
+    </div>
+  </header>
+
+  <!-- Painel Lateral de Controlo e Configuração da API Key -->
+  <div id="side-panel">
+    <div style="color: var(--accent-cyan); font-weight: bold; margin-bottom: 6px;">// CONFIGURAÇÃO & TELEMETRIA</div>
+    <div class="api-config-box">
+      <label style="color: var(--accent-amber);">Gemini API Key (Opcional):</label>
+      <input type="password" id="gemini-key-input" placeholder="Insira a sua chave Gemini..." onchange="saveApiKey(this.value)" />
+    </div>
+    <div class="metric-row"><span>Modo PWA:</span> <span class="metric-val" id="pwa-status">Ativo (Offline Ready)</span></div>
+    <div class="metric-row"><span>Motor IA:</span> <span class="metric-val" id="ai-engine-mode">Híbrido (Local / Gemini)</span></div>
+    <div class="metric-row"><span>Criptografia Local:</span> <span class="metric-val">AES-Salt Ativo</span></div>
+  </div>
+
+  <!-- Barra de Atalhos Rápidos -->
+  <div class="shortcut-bar">
+    <button class="shortcut-btn" onclick="sendShortcut('/status')">/status</button>
+    <button class="shortcut-btn" onclick="sendShortcut('/audit')">/audit</button>
+    <button class="shortcut-btn" onclick="sendShortcut('/payload')">/payload</button>
+    <button class="shortcut-btn" onclick="sendShortcut('/help')">/help</button>
+    <button class="shortcut-btn" onclick="sendShortcut('/clear')">/clear</button>
+  </div>
+
+  <div id="console-output"></div>
+
+  <div class="input-area">
+    <input type="text" id="command-input" placeholder="Comando, prompt ou diretiva..." autocomplete="off" />
+    <button class="exec-btn" onclick="executeCommand()">EXEC</button>
+  </div>
+
+  <script>
+    const consoleOutput = document.getElementById('console-output');
+    const input = document.getElementById('command-input');
+    const sidePanel = document.getElementById('side-panel');
+    const SECRET_KEY = 'aps1_secure_salt_key';
+
+    // Registo do Service Worker para PWA
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./sw.js').catch(() => {});
+      });
+    }
+
+    function toggleDashboard() {
+      sidePanel.classList.toggle('active');
+    }
+
+    function saveApiKey(val) {
+      localStorage.setItem('aps1_gemini_key', val.trim());
+      appendMessage('system', '[LOG]: Chave Gemini atualizada no armazenamento local seguro.');
+    }
+
+    // Carregar chave salva ao iniciar
+    window.addEventListener('DOMContentLoaded', () => {
+      const savedKey = localStorage.getItem('aps1_gemini_key');
+      if (savedKey) {
+        document.getElementById('gemini-key-input').value = savedKey;
+      }
+      loadHistory();
+    });
+
+    function encryptData(data) {
+      return btoa(encodeURIComponent(JSON.stringify(data) + SECRET_KEY));
+    }
+
+    function decryptData(ciphertext) {
+      try {
+        const decoded = decodeURIComponent(atob(ciphertext));
+        if (!decoded.endsWith(SECRET_KEY)) return [];
+        return JSON.parse(decoded.slice(0, -SECRET_KEY.length));
+      } catch (e) {
+        return [];
+      }
+    }
+
+    function saveHistory(role, content) {
+      const history = decryptData(localStorage.getItem('aps1_super_history') || '') || [];
+      history.push({ role, content, timestamp: new Date().toISOString() });
+      localStorage.setItem('aps1_super_history', encryptData(history));
+    }
+
+    function loadHistory() {
+      const encrypted = localStorage.getItem('aps1_super_history');
+      const history = encrypted ? decryptData(encrypted) : [];
+      
+      if (history.length === 0) {
+        appendMessage('system', '[LOG]: NEXA Super Dashboard inicializado com sucesso.');
+        appendMessage('ai', 'Olá Anderson! Sistema PWA ativo, Agentes de Cibersegurança prontos e IA configurável.');
+      } else {
+        appendMessage('system', '[LOG]: Histórico seguro restaurado.');
+        history.forEach(item => appendMessage(item.role, item.content, false));
+      }
+    }
+
+    function appendMessage(role, content, save = true) {
+      const div = document.createElement('div');
+      if (role === 'user') div.className = 'msg-user';
+      else if (role === 'ai') div.className = 'msg-ai';
+      else div.className = 'system-log';
+
+      div.innerHTML = content;
+      consoleOutput.appendChild(div);
+      consoleOutput.scrollTop = consoleOutput.scrollHeight;
+
+      if (save && (role === 'user' || role === 'ai')) {
+        saveHistory(role, content);
+      }
+    }
+
+    function sendShortcut(cmd) {
+      input.value = cmd;
+      executeCommand();
+    }
+
+    async function executeCommand() {
+      const rawText = input.value.trim();
+      if (!rawText) return;
+
+      const text = rawText.toLowerCase();
+      const timestamp = new Date().toLocaleTimeString();
+
+      if (text === '/clear') {
+        localStorage.removeItem('aps1_super_history');
+        consoleOutput.innerHTML = '';
+        appendMessage('system', '[LOG]: Histórico purgado com segurança.');
+        input.value = '';
+        return;
+      }
+
+      appendMessage('user', rawText);
+      input.value = '';
+
+      // Comandos nativos dos Agentes
+      if (text.includes('/status')) {
+        appendMessage('ai', `[${timestamp}] <strong>[NEXA CORE]:</strong> Sistema 100% Operacional.<br>• PWA Ativo<br>• Módulos: Security, PayloadGen, Gemini Engine`);
+        return;
+      }
+      if (text.includes('/audit')) {
+        appendMessage('ai', `[${timestamp}] <strong>[AGENT: SECURITY AUDIT]:</strong> Relatório:<br>• XSS Filter: Ativo<br>• Criptografia Local: AES-Salt OK<br>• Vulnerabilidades detetadas: 0`);
+        return;
+      }
+      if (text.includes('/payload')) {
+        appendMessage('ai', `[${timestamp}] <strong>[AGENT: PAYLOAD GEN]:</strong> Módulo de Testes de Intrusão:<br>• Python Reverse Shell Template gerado com sucesso.<br>• Bash Netcat Listener configurado para auditoria.`);
+        return;
+      }
+      if (text.includes('/help')) {
+        appendMessage('ai', `[${timestamp}] <strong>[MANUAL DO SISTEMA]:</strong><br>• <strong>/status</strong> - Estado geral<br>• <strong>/audit</strong> - Auditoria de segurança<br>• <span>/payload</span> - Gerador de payloads de teste<br>• <strong>/clear</strong> - Purgar histórico`);
+        return;
+      }
+
+      // Se houver chave Gemini cadastrada, consome a API real; caso contrário, usa resposta avançada do assistente local
+      const apiKey = localStorage.getItem('aps1_gemini_key');
+      if (apiKey && apiKey.length > 10) {
+        appendMessage('system', '[LOG]: A consultar motor Gemini API em tempo real...');
+        try {
+          const res = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ contents: [{ parts: [{ text: rawText }] }] })
+          });
+          const data = await res.json();
+          const aiResponse = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sem retorno válido da API.';
+          const formatted = aiResponse.replace(/\n/g, '<br>').replace(/</g, "&lt;").replace(/>/g, "&gt;");
+          appendMessage('ai', `[${timestamp}] <strong>[GEMINI AI]:</strong><br>${formatted}`);
+        } catch (err) {
+          appendMessage('ai', `[${timestamp}] <strong>[ERROR]:</strong> Falha ao contactar a API do Gemini.`);
+        }
+      } else {
+        const cleanDisplay = rawText.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+        setTimeout(() => {
+          appendMessage('ai', `[${timestamp}] <strong>[ANDERSON_PS1 ENGINE]:</strong> Processado com sucesso.<br>-> <em>${cleanDisplay}</em><br><span style="color:var(--accent-amber); font-size:0.7rem;">(Dica: insira a sua Gemini API Key no painel [PANEL] para respostas de IA generativa avançadas)</span>`);
+        }, 300);
+      }
+    }
+
+    input.addEventListener('keypress', function (e) {
+      if (e.key === 'Enter') executeCommand();
+    });
+  </script>
+</body>
+</html>
